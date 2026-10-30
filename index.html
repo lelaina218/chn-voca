@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나만의 중국어 단어장 - 로그인 유지 & 스마트 퀴즈</title>
+  <title>나만의 중국어 단어장 - 모바일 최적화 에디션</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -17,134 +17,138 @@
       --unknown: #dc2626;
     }
     * { box-sizing: border-box; }
-    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; -webkit-tap-highlight-color: transparent; }
     .container { max-width: 920px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    h2 { margin: 0; font-size: 1.5rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    h2 { margin: 0; font-size: 1.35rem; }
 
-    .panel { background: var(--card); padding: 16px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .panel { background: var(--card); padding: 14px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .space-between { justify-content: space-between; }
 
-    button { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.15s; }
+    button { background: var(--primary); color: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.88rem; transition: 0.15s; }
     button:hover { opacity: 0.92; }
     button.secondary { background: #64748b; }
     button.outline { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #fff; }
-    input[type="password"], input[type="text"] { font-size: 0.85rem; flex: 1; max-width: 280px; }
+    select, input[type="text"], input[type="password"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; background: #fff; }
+    input[type="password"], input[type="text"] { font-size: 0.85rem; flex: 1; max-width: 240px; }
 
-    .auth-bar { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .user-info { font-weight: 600; color: #1e40af; font-size: 0.9rem; }
+    .auth-bar { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.85rem; }
+    .user-info { font-weight: 600; color: #1e40af; }
 
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab-btn { background: #e2e8f0; color: var(--text); padding: 10px 18px; border-radius: 10px; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tab-btn { background: #e2e8f0; color: var(--text); padding: 8px 14px; border-radius: 8px; font-size: 0.88rem; }
     .tab-btn.active { background: var(--primary); color: #fff; }
 
-    .card-box { background: var(--card); border-radius: 18px; padding: 36px 24px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); min-height: 290px; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; cursor: pointer; user-select: none; }
-    .card-top-meta { position: absolute; top: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--sub); }
-    .weak-badge { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem; }
+    /* 플래시카드 영역 (스와이프 최적화) */
+    .card-box { background: var(--card); border-radius: 16px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); min-height: 280px; display: flex; flex-direction: column; justify-content: center; gap: 10px; position: relative; cursor: pointer; user-select: none; touch-action: pan-y; }
+    .card-top-meta { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--sub); }
+    .weak-badge { padding: 3px 8px; border-radius: 999px; font-weight: 700; font-size: 0.75rem; }
     .weak-high { background: #fee2e2; color: #991b1b; }
     .weak-mid { background: #fef3c7; color: #92400e; }
     .weak-low { background: #dcfce7; color: #166534; }
     .weak-none { background: #f1f5f9; color: #475569; }
 
-    .hanzi { font-size: 3.4rem; font-weight: 800; margin: 12px 0 4px; }
-    .pinyin { font-size: 1.3rem; color: #475569; margin: 0; }
-    .meaning { font-size: 1.5rem; color: var(--primary); font-weight: 700; margin: 6px 0; }
-    .example-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 0.95rem; line-height: 1.6; text-align: center; }
+    .hanzi { font-size: 3.2rem; font-weight: 800; margin: 8px 0 2px; }
+    .pinyin { font-size: 1.2rem; color: #475569; margin: 0; }
+    .meaning { font-size: 1.4rem; color: var(--primary); font-weight: 700; margin: 4px 0; }
+    
+    /* 카드 내부 발음 버튼 영역 */
+    .card-tts-row { display: flex; justify-content: center; gap: 8px; margin: 4px 0; }
+    .tts-btn { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
+
+    .example-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 8px; font-size: 0.9rem; line-height: 1.5; text-align: center; }
     .hidden { display: none !important; }
 
-    .eval-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
-    .btn-unknown { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; padding: 10px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; }
-    .btn-hold { background: #fef3c7; color: #92400e; border: 2px solid #fde047; padding: 10px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; }
-    .btn-know { background: #dcfce7; color: #166534; border: 2px solid #86efac; padding: 10px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; }
+    .eval-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .btn-unknown { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; padding: 12px 8px; font-size: 0.9rem; font-weight: 600; border-radius: 8px; }
+    .btn-hold { background: #fef3c7; color: #92400e; border: 2px solid #fde047; padding: 12px 8px; font-size: 0.9rem; font-weight: 600; border-radius: 8px; }
+    .btn-know { background: #dcfce7; color: #166534; border: 2px solid #86efac; padding: 12px 8px; font-size: 0.9rem; font-weight: 600; border-radius: 8px; }
 
-    .mini-eval-group { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-
-    .stat-bar-wrap { width: 100%; max-width: 240px; margin: 8px auto 0; }
-    .stat-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #e2e8f0; }
+    .stat-bar-wrap { width: 100%; max-width: 220px; margin: 6px auto 0; }
+    .stat-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #e2e8f0; }
     .bar-u { background: var(--unknown); }
     .bar-h { background: var(--hold); }
     .bar-k { background: var(--know); }
-    .stat-counts { font-size: 0.78rem; color: var(--sub); margin-top: 4px; display: flex; justify-content: space-between; }
+    .stat-counts { font-size: 0.75rem; color: var(--sub); margin-top: 3px; display: flex; justify-content: space-between; }
 
-    .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .quiz-option { background: #f1f5f9; color: var(--text); padding: 14px; border-radius: 10px; font-size: 1rem; border: 2px solid transparent; }
+    .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .quiz-option { background: #f1f5f9; color: var(--text); padding: 12px; border-radius: 8px; font-size: 0.95rem; border: 2px solid transparent; }
     .quiz-option.correct { border-color: var(--know); background: #dcfce7; color: #166534; }
     .quiz-option.wrong { border-color: var(--unknown); background: #fee2e2; color: #991b1b; }
 
-    .table-wrap { overflow-x: auto; background: var(--card); border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-    table { width: 100%; border-collapse: collapse; min-width: 760px; }
-    th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.9rem; vertical-align: middle; }
+    .table-wrap { overflow-x: auto; background: var(--card); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.88rem; vertical-align: middle; }
     th { background: #f1f5f9; font-weight: 700; color: #334155; }
-    .mini-eval-btns button { padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; margin-right: 3px; }
+    .mini-eval-btns button { padding: 3px 6px; font-size: 0.72rem; border-radius: 4px; margin-right: 2px; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h2>🇨🇳 중국어 단어장 <small style="font-size:0.9rem; color:var(--sub); font-weight:500;">로그인 유지 & 스마트 퀴즈</small></h2>
+    <h2>🇨🇳 중국어 단어장</h2>
     <div class="row">
-      <label style="font-size:0.9rem; cursor:pointer;">
-        <input type="checkbox" id="autoTts" checked> 자동 발음(TTS)
+      <label style="font-size:0.85rem; cursor:pointer;">
+        <input type="checkbox" id="autoTts" checked> 자동 발음
       </label>
     </div>
   </header>
 
-  <!-- 구글 로그인 상태 바 -->
+  <!-- 로그인 상태 바 -->
   <div class="auth-bar" id="authBar">
     <div class="user-info" id="userInfo">🔒 로그인이 필요합니다</div>
     <div class="row">
-      <button id="loginBtn" onclick="handleGoogleLogin()">구글로 로그인</button>
-      <button id="logoutBtn" class="secondary hidden" onclick="handleGoogleLogout()">로그아웃</button>
+      <button id="loginBtn" onclick="handleGoogleLogin()" style="padding: 5px 10px; font-size: 0.8rem;">닉네임 입력</button>
+      <button id="logoutBtn" class="secondary hidden" onclick="handleGoogleLogout()" style="padding: 5px 10px; font-size: 0.8rem;">로그아웃</button>
     </div>
   </div>
 
   <!-- 1. 파일 업로드 및 AI 패널 -->
-  <div class="panel" style="margin-top: 12px;">
+  <div class="panel" style="margin-top: 10px;">
     <div class="row space-between">
       <div class="row">
-        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv">
+        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="font-size: 0.85rem; max-width: 190px;">
         <button onclick="exportExcel()" class="outline">📥 엑셀 백업</button>
         <button onclick="resetSampleData()" class="outline">🔄 샘플 복원</button>
       </div>
-      <small id="statusText" style="color: var(--sub); font-weight: 600;"></small>
+      <small id="statusText" style="color: var(--sub); font-weight: 600; font-size: 0.8rem;"></small>
     </div>
 
     <div class="row">
-      <input type="password" id="apiKey" placeholder="Gemini API Key (빈 예문 자동 생성용)">
-      <button id="genBtn" onclick="generateExamples()">⚡ 빈 예문 AI 자동 생성</button>
+      <input type="password" id="apiKey" placeholder="Gemini API Key (예문 자동 생성용)">
+      <button id="genBtn" onclick="generateExamples()">⚡ AI 예문 생성</button>
     </div>
   </div>
 
   <!-- 2. 급수 필터 & 정렬 바 -->
-  <div class="panel" style="padding: 12px 16px;">
+  <div class="panel" style="padding: 10px 14px;">
     <div class="row space-between">
       <div class="row">
-        <label style="font-size:0.85rem; font-weight:600;">급수별 보기:</label>
-        <select id="levelFilter" onchange="applyFilterAndSort()">
-          <option value="all">전체 급수</option>
+        <label style="font-size:0.82rem; font-weight:600;">급수:</label>
+        <select id="levelFilter" onchange="applyFilterAndSort()" style="font-size: 0.82rem;">
+          <option value="all">전체</option>
         </select>
 
-        <label style="font-size:0.85rem; font-weight:600; margin-left:6px;">상태:</label>
-        <select id="stateFilter" onchange="applyFilterAndSort()">
-          <option value="all">전체 보기</option>
-          <option value="weak_focus">🔥 집중 복습 (취약도 ≥ 50%)</option>
-          <option value="has_unknown">❌ 모르겠다 있음</option>
+        <label style="font-size:0.82rem; font-weight:600; margin-left:4px;">상태:</label>
+        <select id="stateFilter" onchange="applyFilterAndSort()" style="font-size: 0.82rem;">
+          <option value="all">전체</option>
+          <option value="weak_focus">🔥 취약 (≥50%)</option>
+          <option value="has_unknown">❌ 모름 있음</option>
           <option value="unstudied">🆕 미학습</option>
         </select>
       </div>
 
       <div class="row">
-        <label style="font-size:0.85rem; font-weight:600;">정렬:</label>
-        <select id="sortOrder" onchange="applyFilterAndSort()">
-          <option value="weak_ratio_desc">🔥 취약도 높은 순</option>
-          <option value="weak_count_desc">💥 오답·보류 횟수 많은 순</option>
-          <option value="less_studied">🌱 학습 횟수 적은 순</option>
-          <option value="original">🔢 기본 등록 순</option>
+        <label style="font-size:0.82rem; font-weight:600;">정렬:</label>
+        <select id="sortOrder" onchange="applyFilterAndSort()" style="font-size: 0.82rem;">
+          <option value="weak_ratio_desc">🔥 취약도순</option>
+          <option value="weak_count_desc">💥 오답누적순</option>
+          <option value="less_studied">🌱 적게 본 순</option>
+          <option value="original">🔢 등록순</option>
         </select>
       </div>
     </div>
@@ -154,12 +158,12 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchMode('flashcard', this)">🗂️ 플래시카드</button>
     <button class="tab-btn" onclick="switchMode('quiz', this)">🎯 4지선다 퀴즈</button>
-    <button class="tab-btn" onclick="switchMode('list', this)">📊 취약도 순위 & 전체 목록</button>
+    <button class="tab-btn" onclick="switchMode('list', this)">📊 전체 목록</button>
   </div>
 
-  <!-- 뷰 1: 플래시카드 -->
+  <!-- 뷰 1: 플래시카드 (스와이프 + 내부 발음 버튼) -->
   <div id="flashcardView" class="view">
-    <div class="card-box" onclick="toggleCardAnswer()">
+    <div class="card-box" id="flashcardCard" onclick="toggleCardAnswer()">
       <div class="card-top-meta">
         <span id="fcProgress">1 / 8</span>
         <div>
@@ -169,7 +173,14 @@
       </div>
 
       <p class="hanzi" id="fcHanzi"></p>
-      <p style="font-size:0.82rem; color:var(--sub); margin:0;">(카드를 클릭하거나 Space바를 눌러 뜻/예문 확인)</p>
+      
+      <!-- 카드 내부 발음 버튼 -->
+      <div class="card-tts-row" onclick="event.stopPropagation()">
+        <button class="tts-btn" onclick="speakCurrentWord()">🔊 단어</button>
+        <button class="tts-btn" id="fcExTtsBtn" onclick="speakCurrentExample()">🔊 예문</button>
+      </div>
+
+      <p style="font-size:0.78rem; color:var(--sub); margin:2px 0 0;">(카드 터치 또는 좌우 스와이프)</p>
 
       <div id="fcAnswer" class="hidden">
         <p class="pinyin" id="fcPinyin"></p>
@@ -183,35 +194,33 @@
       </div>
     </div>
 
-    <!-- 평가 버튼 및 취소(되돌리기) 버튼 -->
+    <!-- 평가 버튼 -->
     <div class="eval-group">
       <button class="btn-unknown" onclick="recordStudy('unknown')">❌ 모르겠다 (1)</button>
       <button class="btn-hold" onclick="recordStudy('hold')">⚠️ 보류 (2)</button>
       <button class="btn-know" onclick="recordStudy('know')">⭕ 알겠다 (3)</button>
     </div>
 
-    <div class="row" style="justify-content: center; margin-top: 14px;">
+    <!-- 간소화된 하단 조작부 (Undo 누르면 자동으로 이전 단어로 이동) -->
+    <div class="row" style="justify-content: center; margin-top: 10px; gap: 6px;">
       <button class="outline" onclick="moveCard(-1)">◀ 이전 단어</button>
-      <button class="outline" onclick="speakCurrentWord()">🔊 단어 발음 (S)</button>
-      <button class="outline" onclick="speakCurrentExample()">🔊 예문 발음 (E)</button>
       <button class="outline" style="background:#fef2f2; color:#b91c1c; border-color:#fca5a5;" onclick="undoLastStudy()">↩️ 직전 기록 취소</button>
       <button class="outline" onclick="moveCard(1)">건너뛰기 ▶</button>
     </div>
   </div>
 
-  <!-- 뷰 2: 퀴즈 (모르겠다 버튼만 추가) -->
+  <!-- 뷰 2: 퀴즈 -->
   <div id="quizView" class="view hidden">
-    <div class="card-box" style="cursor:default; padding: 28px 24px;">
+    <div class="card-box" style="cursor:default; padding: 24px 16px;">
       <div class="card-top-meta">
         <span id="qzLevelBadge" class="weak-badge" style="background:#e0f2fe; color:#0369a1;">1급</span>
         <span id="qzWeakBadge" class="weak-badge weak-none"></span>
       </div>
-      <p class="hanzi" id="qzHanzi" style="margin:8px 0 0;"></p>
+      <p class="hanzi" id="qzHanzi" style="margin:4px 0 0;"></p>
       <p class="pinyin" id="qzPinyin" style="margin:0;"></p>
       
-      <!-- 퀴즈 풀기 전 체크 가능한 '모르겠다' 전용 미니 버튼 -->
-      <div class="mini-eval-group">
-        <button class="btn-unknown" onclick="setQuizUnknownState()" id="qBtnU" style="padding:5px 12px; font-size:0.82rem; opacity: 0.5;">❌ 모르겠다 체크하고 풀기</button>
+      <div style="margin-top: 6px;">
+        <button class="btn-unknown" onclick="markQuizAsUnknown()" style="padding: 5px 12px; font-size: 0.8rem;">❌ 잘 모르겠음 (오답 처리)</button>
       </div>
 
       <div class="quiz-options" id="qzOptions"></div>
@@ -229,7 +238,7 @@
             <th>한자 / 병음</th>
             <th>의미</th>
             <th>예문</th>
-            <th>취약도 (누적 기록)</th>
+            <th>취약도</th>
             <th>즉시 기록</th>
             <th>발음</th>
           </tr>
@@ -252,43 +261,66 @@
     { id: 8, level: '4급', hanzi: '放心', pinyin: 'fàngxīn', meaning: '안심하다', exHanzi: '这件事交给我，你放心吧。', exPinyin: 'Zhè jiàn shì jiāo gěi wǒ, nǐ fàngxīn ba.', exMeaning: '이 일은 나에게 맡기고 안심해.', know: 3, hold: 0, unknown: 1 }
   ];
 
-  let words = JSON.parse(localStorage.getItem('myChnWordsV6') || 'null') || SAMPLE_WORDS;
+  let words = JSON.parse(localStorage.getItem('myChnWordsV8') || 'null') || SAMPLE_WORDS;
   let filteredWords = [];
   let currentIndex = 0;
   let currentQuizWord = null;
-  let quizUnknownChecked = false; // 퀴즈에서 모르겠다 체크 여부
   let currentUser = JSON.parse(localStorage.getItem('myLoginUser') || 'null');
-  let lastAction = null; // 직전 기록 취소용 (word, type)
+  let lastAction = null;
+
+  // 터치 스와이프 감지를 위한 변수
+  let touchStartX = 0;
+  let touchEndX = 0;
 
   window.addEventListener('DOMContentLoaded', () => {
     checkLoginState();
     initLevelOptions();
     applyFilterAndSort();
+    initSwipeEvents();
   });
 
-  // 로그인 상태 유지 검사 및 UI 반영
+  function initSwipeEvents() {
+    const card = document.getElementById('flashcardCard');
+    card.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    card.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, {passive: true});
+  }
+
+  function handleSwipe() {
+    const swipeThreshold = 40; // 스와이프 인식 최소 거리
+    if (touchEndX < touchStartX - swipeThreshold) {
+      // 왼쪽으로 스와이프 -> 다음 단어
+      moveCard(1);
+    } else if (touchEndX > touchStartX + swipeThreshold) {
+      // 오른쪽으로 스와이프 -> 이전 단어
+      moveCard(-1);
+    }
+  }
+
   function checkLoginState() {
     if (currentUser) {
-      document.getElementById('userInfo').textContent = `👤 로그인됨: ${currentUser.email} (실시간 동기화)`;
+      document.getElementById('userInfo').textContent = `👤 ${currentUser.email}`;
       document.getElementById('loginBtn').classList.add('hidden');
       document.getElementById('logoutBtn').classList.remove('hidden');
       
       const cloudData = localStorage.getItem(`cloud_words_${currentUser.email}`);
-      if (cloudData) {
-        words = JSON.parse(cloudData);
-      }
+      if (cloudData) words = JSON.parse(cloudData);
     }
   }
 
   window.handleGoogleLogin = function() {
-    const email = prompt("구글 로그인용 이메일 주소를 입력해주세요 (기기 간 연동 식별용):");
+    const email = prompt("사용하실 닉네임 또는 ID를 입력해주세요:");
     if (!email) return;
-    
-    currentUser = { email, displayName: email.split('@')[0] };
+    currentUser = { email, displayName: email };
     localStorage.setItem('myLoginUser', JSON.stringify(currentUser));
     checkLoginState();
     saveData();
-    alert('로그인되었습니다! 새로고침해도 유지됩니다.');
+    alert('로그인되었습니다!');
   };
 
   window.handleGoogleLogout = function() {
@@ -354,12 +386,14 @@
     const progEl = document.getElementById('fcProgress');
     const badgeEl = document.getElementById('fcWeakBadge');
     const levelBadgeEl = document.getElementById('fcLevelBadge');
+    const exTtsBtn = document.getElementById('fcExTtsBtn');
 
     if (filteredWords.length === 0) {
       hanziEl.textContent = '조건에 맞는 단어가 없습니다';
       progEl.textContent = '0 / 0';
       badgeEl.textContent = '-';
       levelBadgeEl.textContent = '-';
+      exTtsBtn.style.display = 'none';
       document.getElementById('fcAnswer').classList.add('hidden');
       document.getElementById('fcStatBar').innerHTML = '';
       document.getElementById('fcStatCounts').innerHTML = '';
@@ -372,11 +406,19 @@
     progEl.textContent = `${currentIndex + 1} / ${filteredWords.length}`;
     levelBadgeEl.textContent = w.level || '일반';
     hanziEl.textContent = w.hanzi;
+    
+    // 예문이 없으면 예문 발음 버튼 숨김
+    if (w.exHanzi) {
+      exTtsBtn.style.display = 'flex';
+    } else {
+      exTtsBtn.style.display = 'none';
+    }
+
     document.getElementById('fcPinyin').textContent = `[ ${w.pinyin} ]`;
     document.getElementById('fcMeaning').textContent = w.meaning;
     document.getElementById('fcExample').innerHTML = w.exHanzi
       ? `<strong>${w.exHanzi}</strong><br><span style="color:var(--sub)">${w.exPinyin}</span><br>${w.exMeaning}`
-      : '<em>아직 예문이 없습니다. 상단 AI 자동 생성을 눌러보세요!</em>';
+      : '<em>아직 예문이 없습니다.</em>';
 
     document.getElementById('fcAnswer').classList.add('hidden');
     setBadgeStyle(badgeEl, s);
@@ -394,9 +436,9 @@
       document.getElementById('fcStatBar').innerHTML = '';
     }
     document.getElementById('fcStatCounts').innerHTML = `
-      <span style="color:var(--unknown)">❌ 모르겠다 ${s.u}</span>
-      <span style="color:var(--hold)">⚠️ 보류 ${s.h}</span>
-      <span style="color:var(--know)">⭕ 알겠다 ${s.k}</span>
+      <span style="color:var(--unknown)">❌ ${s.u}</span>
+      <span style="color:var(--hold)">⚠️ ${s.h}</span>
+      <span style="color:var(--know)">⭕ ${s.k}</span>
     `;
 
     if (document.getElementById('autoTts').checked) {
@@ -411,22 +453,21 @@
       el.textContent = '🆕 미학습';
     } else if (s.weakRatio >= 60) {
       el.classList.add('weak-high');
-      el.textContent = `🔥 취약도 ${Math.round(s.weakRatio)}%`;
+      el.textContent = `🔥 ${Math.round(s.weakRatio)}%`;
     } else if (s.weakRatio >= 25) {
       el.classList.add('weak-mid');
-      el.textContent = `⚠️ 취약도 ${Math.round(s.weakRatio)}%`;
+      el.textContent = `⚠️ ${Math.round(s.weakRatio)}%`;
     } else {
       el.classList.add('weak-low');
-      el.textContent = `✅ 취약도 ${Math.round(s.weakRatio)}%`;
+      el.textContent = `✅ ${Math.round(s.weakRatio)}%`;
     }
   }
 
-  // 학습 기록 저장 및 직전 취소(Undo) 대상 저장
   function recordStudy(type) {
     if (filteredWords.length === 0) return;
     const w = filteredWords[currentIndex];
     w[type] = Number(w[type] || 0) + 1;
-    lastAction = { word: w, type: type }; // 취소용 백업
+    lastAction = { word: w, type: type, prevIndex: currentIndex };
 
     saveData();
     renderTable();
@@ -435,23 +476,26 @@
       currentIndex++;
       renderFlashcard();
     } else {
-      alert('현재 목록의 마지막 단어입니다! 최신 순으로 재정렬합니다.');
+      alert('마지막 단어입니다! 최신 순으로 재정렬합니다.');
       applyFilterAndSort();
     }
   }
 
-  // 직전 기록 취소 버튼 기능
+  // 직전 기록 취소 + 자동으로 이전 단어로 복귀
   function undoLastStudy() {
     if (!lastAction) {
       return alert('취소할 직전 학습 기록이 없습니다.');
     }
-    const { word, type } = lastAction;
+    const { word, type, prevIndex } = lastAction;
     if (word[type] > 0) {
       word[type] -= 1;
       saveData();
       renderTable();
+      
+      // 이전 카드로 이동
+      currentIndex = prevIndex;
       renderFlashcard();
-      alert(`↩️ 직전 기록("${word.hanzi}"의 ${type === 'unknown' ? '모르겠다' : (type === 'hold' ? '보류' : '알겠다')})이 취소되었습니다.`);
+      
       lastAction = null;
     }
   }
@@ -464,51 +508,12 @@
     applyFilterAndSort();
   }
 
-  function renderTable() {
-    const tbody = document.getElementById('wordTableBody');
-    tbody.innerHTML = filteredWords.map((w, idx) => {
-      const s = getStats(w);
-      let badgeHtml = `<span class="weak-badge weak-none">미학습</span>`;
-      if (s.total > 0) {
-        const cls = s.weakRatio >= 60 ? 'weak-high' : (s.weakRatio >= 25 ? 'weak-mid' : 'weak-low');
-        badgeHtml = `<span class="weak-badge ${cls}">취약도 ${Math.round(s.weakRatio)}%</span>`;
-      }
-
-      return `
-        <tr>
-          <td><strong>#${idx + 1}</strong></td>
-          <td><span style="font-weight:600; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; font-size:0.8rem;">${w.level || '일반'}</span></td>
-          <td><strong style="font-size:1.1rem;">${w.hanzi}</strong><br><small style="color:var(--sub)">${w.pinyin}</small></td>
-          <td>${w.meaning}</td>
-          <td>${w.exHanzi ? `${w.exHanzi}<br><small style="color:var(--sub)">${w.exPinyin} / ${w.exMeaning}</small>` : '<small style="color:#94a3b8">예문 없음</small>'}</td>
-          <td>
-            ${badgeHtml}
-            <div style="font-size:0.78rem; color:var(--sub); margin-top:2px;">❌${s.u} · ⚠️${s.h} · ⭕${s.k}</div>
-          </td>
-          <td class="mini-eval-btns">
-            <button class="btn-unknown" onclick="recordFromTable(${w.id}, 'unknown')">❌</button>
-            <button class="btn-hold" onclick="recordFromTable(${w.id}, 'hold')">⚠️</button>
-            <button class="btn-know" onclick="recordFromTable(${w.id}, 'know')">⭕</button>
-          </td>
-          <td><button class="outline" onclick="speakChinese('${w.hanzi}')">🔊</button></td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // 퀴즈 툴바: 모르겠다 체크 기능
-  function setQuizUnknownState() {
-    quizUnknownChecked = !quizUnknownChecked;
-    const btn = document.getElementById('qBtnU');
-    if (quizUnknownChecked) {
-      btn.style.opacity = '1';
-      btn.style.background = '#fee2e2';
-      btn.style.borderColor = '#dc2626';
-    } else {
-      btn.style.opacity = '0.5';
-      btn.style.background = '#fee2e2';
-      btn.style.borderColor = '#fca5a5';
-    }
+  function markQuizAsUnknown() {
+    if (!currentQuizWord) return;
+    currentQuizWord.unknown = Number(currentQuizWord.unknown || 0) + 1;
+    saveData();
+    renderTable();
+    nextQuiz();
   }
 
   function nextQuiz() {
@@ -516,10 +521,6 @@
       alert('퀴즈를 진행하려면 최소 4개 이상의 단어가 필요합니다.');
       return;
     }
-    quizUnknownChecked = false;
-    const uBtn = document.getElementById('qBtnU');
-    uBtn.style.opacity = '0.5';
-    uBtn.style.background = '#fee2e2';
 
     const targetIdx = Math.floor(Math.random() * Math.min(filteredWords.length, 15));
     currentQuizWord = filteredWords[targetIdx];
@@ -545,17 +546,11 @@
       btn.className = 'quiz-option';
       btn.textContent = opt.meaning;
       btn.onclick = () => {
-        // 퀴즈 풀기 전 '모르겠다'를 체크했다면 unknown +1 반영
-        if (quizUnknownChecked) {
-          currentQuizWord.unknown = Number(currentQuizWord.unknown || 0) + 1;
-        }
-
         if (opt.hanzi === currentQuizWord.hanzi) {
           btn.classList.add('correct');
           if (currentQuizWord.exHanzi) speakChinese(currentQuizWord.exHanzi);
         } else {
           btn.classList.add('wrong');
-          // 틀렸을 경우 자동 오답 처리(모르겠다 +1 추가 반영)
           currentQuizWord.unknown = Number(currentQuizWord.unknown || 0) + 1;
         }
 
@@ -564,7 +559,7 @@
 
         setTimeout(() => {
           nextQuiz();
-        }, 900);
+        }, 800);
       };
       container.appendChild(btn);
     });
@@ -597,7 +592,7 @@
       saveData();
       initLevelOptions();
       applyFilterAndSort();
-      alert(`${words.length}개 단어와 급수 정보를 성공적으로 불러왔습니다!`);
+      alert(`${words.length}개 단어 로드 완료!`);
     };
     reader.readAsArrayBuffer(file);
   });
@@ -607,23 +602,15 @@
     const exportRows = words.map(w => {
       const s = getStats(w);
       return {
-        '급수': w.level,
-        '한자': w.hanzi,
-        '병음': w.pinyin,
-        '의미': w.meaning,
-        '예문_한자': w.exHanzi,
-        '예문_병음': w.exPinyin,
-        '예문_의미': w.exMeaning,
-        '알겠다': s.k,
-        '보류': s.h,
-        '모르겠다': s.u,
-        '취약도(%)': s.total > 0 ? Math.round(s.weakRatio) : 0
+        '급수': w.level, '한자': w.hanzi, '병음': w.pinyin, '의미': w.meaning,
+        '예문_한자': w.exHanzi, '예문_병음': w.exPinyin, '예문_의미': w.exMeaning,
+        '알겠다': s.k, '보류': s.h, '모르겠다': s.u, '취약도(%)': s.total > 0 ? Math.round(s.weakRatio) : 0
       };
     });
     const ws = XLSX.utils.json_to_sheet(exportRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Words");
-    XLSX.writeFile(wb, "chinese_vocab_google_sync.xlsx");
+    XLSX.writeFile(wb, "chinese_vocab_sync.xlsx");
   }
 
   async function generateExamples() {
@@ -631,15 +618,15 @@
     if (!apiKey) return alert('Gemini API 키를 입력해주세요.');
 
     const targets = words.filter(w => !w.exHanzi);
-    if (targets.length === 0) return alert('모든 단어에 이미 예문이 있습니다.');
+    if (targets.length === 0) return alert('모든 단어에 예문이 있습니다.');
 
     const btn = document.getElementById('genBtn');
     btn.disabled = true;
-    btn.textContent = '예문 생성 중...';
+    btn.textContent = '생성 중...';
 
     try {
       const batch = targets.slice(0, 10);
-      const prompt = `다음 중국어 단어들에 대해 일상 회화에서 자주 쓰는 짧은 예문 1개씩을 만들어줘. 반드시 순수 JSON 배열 포맷으로만 응답해:
+      const prompt = `다음 중국어 단어들에 대해 일상 회화에서 자주 쓰는 짧은 예문 1개씩 만들어줘. 반드시 순수 JSON 배열 포맷으로만 응답해:
 [{"hanzi":"단어","exHanzi":"중국어예문","exPinyin":"예문병음","exMeaning":"한국어해석"}]
 단어 목록: ${ batch.map(b => `${b.hanzi}(${b.meaning})`).join(', ') }`;
 
@@ -667,12 +654,12 @@
       saveData();
       renderFlashcard();
       renderTable();
-      alert(`${generated.length}개 단어의 예문이 생성되었습니다!`);
+      alert(`${generated.length}개 예문 생성 완료!`);
     } catch (err) {
-      alert('예문 생성 중 오류가 발생했습니다.');
+      alert('생성 중 오류 발생');
     } finally {
       btn.disabled = false;
-      btn.textContent = '⚡ 빈 예문 AI 자동 생성';
+      btn.textContent = '⚡ AI 예문 생성';
     }
   }
 
@@ -706,10 +693,10 @@
   function initLevelOptions() {
     const sel = document.getElementById('levelFilter');
     const levels = [...new Set(words.map(w => w.level || '일반'))];
-    sel.innerHTML = `<option value="all">전체 급수 (${words.length}개)</option>`;
+    sel.innerHTML = `<option value="all">전체 (${words.length})</option>`;
     levels.forEach(lvl => {
       const count = words.filter(w => (w.level || '일반') === lvl).length;
-      sel.innerHTML += `<option value="${lvl}">${lvl} (${count}개)</option>`;
+      sel.innerHTML += `<option value="${lvl}">${lvl} (${count})</option>`;
     });
   }
 
@@ -731,7 +718,7 @@
   }
 
   function saveData() {
-    localStorage.setItem('myChnWordsV6', JSON.stringify(words));
+    localStorage.setItem('myChnWordsV8', JSON.stringify(words));
     if (currentUser) {
       localStorage.setItem(`cloud_words_${currentUser.email}`, JSON.stringify(words));
     }
@@ -740,15 +727,14 @@
 
   function resetSampleData() {
     if (confirm('샘플 데이터로 초기화할까요?')) {
-      localStorage.removeItem('myChnWordsV6');
+      localStorage.removeItem('myChnWordsV8');
       location.reload();
     }
   }
 
   function updateStatus() {
     const studied = words.filter(w => (w.know + w.hold + w.unknown) > 0).length;
-    document.getElementById('statusText').textContent =
-      `총 ${words.length}개 단어 | 학습 완료: ${studied}개 | 현재 필터: ${filteredWords.length}개`;
+    document.getElementById('statusText').textContent = `총 ${words.length}개 | 완료 ${studied}개`;
   }
 
   window.addEventListener('keydown', (e) => {
@@ -759,8 +745,6 @@
     else if (e.key === '1') recordStudy('unknown');
     else if (e.key === '2') recordStudy('hold');
     else if (e.key === '3') recordStudy('know');
-    else if (e.key.toLowerCase() === 's') speakCurrentWord();
-    else if (e.key.toLowerCase() === 'e') speakCurrentExample();
   });
 </script>
 
