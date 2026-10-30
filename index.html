@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나만의 중국어 단어장 - 클라우드 동기화 & 급수별 관리</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --sub: #64748b;
+      --know: #16a34a;
+      --hold: #d97706;
+      --unknown: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    .container { max-width: 920px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    h2 { margin: 0; font-size: 1.5rem; }
+
+    /* 패널 스타일 */
+    .panel { background: var(--card); padding: 16px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .space-between { justify-content: space-between; }
+
+    button { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.15s; }
+    button:hover { opacity: 0.92; }
+    button.secondary { background: #64748b; }
+    button.outline { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #fff; }
+    input[type="password"], input[type="text"] { font-size: 0.85rem; }
+
+    /* 탭 스타일 */
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { background: #e2e8f0; color: var(--text); padding: 10px 18px; border-radius: 10px; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+
+    /* 플래시카드 영역 */
+    .card-box { background: var(--card); border-radius: 18px; padding: 36px 24px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); min-height: 290px; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; cursor: pointer; user-select: none; }
+    .card-top-meta { position: absolute; top: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--sub); }
+    .weak-badge { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem; }
+    .weak-high { background: #fee2e2; color: #991b1b; }
+    .weak-mid { background: #fef3c7; color: #92400e; }
+    .weak-low { background: #dcfce7; color: #166534; }
+    .weak-none { background: #f1f5f9; color: #475569; }
+
+    .hanzi { font-size: 3.4rem; font-weight: 800; margin: 12px 0 4px; }
+    .pinyin { font-size: 1.3rem; color: #475569; margin: 0; }
+    .meaning { font-size: 1.5rem; color: var(--primary); font-weight: 700; margin: 6px 0; }
+    .example-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 0.95rem; line-height: 1.6; text-align: center; }
+    .hidden { display: none !important; }
+
+    /* 평가 버튼 */
+    .eval-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .btn-unknown { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; padding: 12px; font-size: 1rem; }
+    .btn-hold { background: #fef3c7; color: #92400e; border: 2px solid #fde047; padding: 12px; font-size: 1rem; }
+    .btn-know { background: #dcfce7; color: #166534; border: 2px solid #86efac; padding: 12px; font-size: 1rem; }
+    .eval-sub { display: block; font-size: 0.75rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
+
+    /* 미니 게이지 바 */
+    .stat-bar-wrap { width: 100%; max-width: 240px; margin: 8px auto 0; }
+    .stat-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #e2e8f0; }
+    .bar-u { background: var(--unknown); }
+    .bar-h { background: var(--hold); }
+    .bar-k { background: var(--know); }
+    .stat-counts { font-size: 0.78rem; color: var(--sub); margin-top: 4px; display: flex; justify-content: space-between; }
+
+    /* 퀴즈 옵션 */
+    .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .quiz-option { background: #f1f5f9; color: var(--text); padding: 14px; border-radius: 10px; font-size: 1rem; border: 2px solid transparent; }
+    .quiz-option.correct { border-color: var(--know); background: #dcfce7; color: #166534; }
+    .quiz-option.wrong { border-color: var(--unknown); background: #fee2e2; color: #991b1b; }
+
+    /* 테이블 */
+    .table-wrap { overflow-x: auto; background: var(--card); border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.9rem; vertical-align: middle; }
+    th { background: #f1f5f9; font-weight: 700; color: #334155; }
+    .mini-eval-btns button { padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; margin-right: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h2>🇨🇳 중국어 단어장 <small style="font-size:0.9rem; color:var(--sub); font-weight:500;">클라우드 동기화 & 급수별 관리</small></h2>
+    <div class="row">
+      <label style="font-size:0.9rem; cursor:pointer;">
+        <input type="checkbox" id="autoTts" checked> 자동 발음(TTS)
+      </label>
+    </div>
+  </header>
+
+  <!-- 1. 파일 업로드 및 클라우드 동기화 패널 -->
+  <div class="panel">
+    <div class="row space-between">
+      <div class="row">
+        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv">
+        <button onclick="exportExcel()" class="outline">📥 엑셀 백업</button>
+        <button onclick="resetSampleData()" class="outline">🔄 샘플 복원</button>
+      </div>
+      <small id="statusText" style="color: var(--sub); font-weight: 600;"></small>
+    </div>
+
+    <!-- GitHub Gist 클라우드 동기화 바 (방법 1) -->
+    <div class="row space-between" style="border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+      <div class="row" style="flex:1;">
+        <input type="text" id="gistId" placeholder="Gist ID 입력" style="max-width: 180px;">
+        <input type="password" id="ghToken" placeholder="GitHub Token (gist 권한)" style="max-width: 220px;">
+        <button onclick="saveToCloud()" class="outline" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">☁️ 클라우드 저장(Push)</button>
+        <button onclick="loadFromCloud()" class="outline" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">📥 클라우드 불러오기(Pull)</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <input type="password" id="apiKey" placeholder="Gemini API Key 입력 (빈 예문 자동 생성용)">
+      <button id="genBtn" onclick="generateExamples()">⚡ 빈 예문 AI 자동 생성</button>
+    </div>
+  </div>
+
+  <!-- 2. 급수 필터, 상태 필터, 정렬 바 -->
+  <div class="panel" style="padding: 12px 16px;">
+    <div class="row space-between">
+      <div class="row">
+        <label style="font-size:0.85rem; font-weight:600;">급수별 보기:</label>
+        <select id="levelFilter" onchange="applyFilterAndSort()">
+          <option value="all">전체 급수</option>
+        </select>
+
+        <label style="font-size:0.85rem; font-weight:600; margin-left:6px;">상태:</label>
+        <select id="stateFilter" onchange="applyFilterAndSort()">
+          <option value="all">전체 보기</option>
+          <option value="weak_focus">🔥 집중 복습 (취약도 ≥ 50%)</option>
+          <option value="has_unknown">❌ 모르겠다 있음</option>
+          <option value="unstudied">🆕 미학습</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label style="font-size:0.85rem; font-weight:600;">정렬:</label>
+        <select id="sortOrder" onchange="applyFilterAndSort()">
+          <option value="weak_ratio_desc">🔥 취약도 높은 순</option>
+          <option value="weak_count_desc">💥 오답·보류 횟수 많은 순</option>
+          <option value="less_studied">🌱 학습 횟수 적은 순</option>
+          <option value="original">🔢 기본 등록 순</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모드 전환 탭 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchMode('flashcard', this)">🗂️ 플래시카드</button>
+    <button class="tab-btn" onclick="switchMode('quiz', this)">🎯 4지선다 퀴즈</button>
+    <button class="tab-btn" onclick="switchMode('list', this)">📊 취약도 순위 & 전체 목록</button>
+  </div>
+
+  <!-- 뷰 1: 플래시카드 -->
+  <div id="flashcardView" class="view">
+    <div class="card-box" onclick="toggleCardAnswer()">
+      <div class="card-top-meta">
+        <span id="fcProgress">1 / 12</span>
+        <div>
+          <span id="fcLevelBadge" class="weak-badge" style="background:#e0f2fe; color:#0369a1; margin-right:4px;">1급</span>
+          <span id="fcWeakBadge" class="weak-badge weak-none">미학습</span>
+        </div>
+      </div>
+
+      <p class="hanzi" id="fcHanzi"></p>
+      <p style="font-size:0.82rem; color:var(--sub); margin:0;">(카드를 클릭하거나 Space바를 눌러 뜻/예문 확인)</p>
+
+      <div id="fcAnswer" class="hidden">
+        <p class="pinyin" id="fcPinyin"></p>
+        <p class="meaning" id="fcMeaning"></p>
+        <div class="example-box" id="fcExample"></div>
+      </div>
+
+      <div class="stat-bar-wrap" onclick="event.stopPropagation()">
+        <div class="stat-bar" id="fcStatBar"></div>
+        <div class="stat-counts" id="fcStatCounts"></div>
+      </div>
+    </div>
+
+    <!-- 평가 버튼 -->
+    <div class="eval-group">
+      <button class="btn-unknown" onclick="recordStudy('unknown')">
+        ❌ 모르겠다 (단축키 1)
+        <span class="eval-sub">취약도 100% 반영</span>
+      </button>
+      <button class="btn-hold" onclick="recordStudy('hold')">
+        ⚠️ 보류 / 애매함 (단축키 2)
+        <span class="eval-sub">취약도 50% 반영</span>
+      </button>
+      <button class="btn-know" onclick="recordStudy('know')">
+        ⭕ 알겠다 (단축키 3)
+        <span class="eval-sub">안정권 반영</span>
+      </button>
+    </div>
+
+    <div class="row" style="justify-content: center; margin-top: 14px;">
+      <button class="outline" onclick="moveCard(-1)">◀ 이전 단어</button>
+      <button class="outline" onclick="speakCurrentWord()">🔊 단어 발음 (S)</button>
+      <button class="outline" onclick="speakCurrentExample()">🔊 예문 발음 (E)</button>
+      <button class="outline" onclick="moveCard(1)">건너뛰기 ▶</button>
+    </div>
+  </div>
+
+  <!-- 뷰 2: 퀴즈 -->
+  <div id="quizView" class="view hidden">
+    <div class="card-box" style="cursor:default;">
+      <div class="card-top-meta">
+        <span id="qzLevelBadge" class="weak-badge" style="background:#e0f2fe; color:#0369a1;">1급</span>
+        <span id="qzWeakBadge" class="weak-badge weak-none"></span>
+      </div>
+      <p class="hanzi" id="qzHanzi"></p>
+      <p class="pinyin" id="qzPinyin"></p>
+      <div class="quiz-options" id="qzOptions"></div>
+      <div id="qzFeedback" class="hidden" style="margin-top:14px;">
+        <p style="font-size:0.9rem; color:var(--sub); marginBottom:8px;">이 단어의 암기 상태를 기록하고 다음 문제로 넘어가세요:</p>
+        <div class="eval-group">
+          <button class="btn-unknown" onclick="recordQuizStudy('unknown')">❌ 모르겠다</button>
+          <button class="btn-hold" onclick="recordQuizStudy('hold')">⚠️ 보류</button>
+          <button class="btn-know" onclick="recordQuizStudy('know')">⭕ 알겠다</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뷰 3: 전체 목록 -->
+  <div id="listView" class="view hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>급수</th>
+            <th>한자 / 병음</th>
+            <th>의미</th>
+            <th>예문</th>
+            <th>취약도 (누적 기록)</th>
+            <th>즉시 기록</th>
+            <th>발음</th>
+          </tr>
+        </thead>
+        <tbody id="wordTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 초기 샘플 데이터 (급수 포함)
+  const SAMPLE_WORDS = [
+    { id: 1, level: '1급', hanzi: '准备', pinyin: 'zhǔnbèi', meaning: '준비하다', exHanzi: '我已经准备好去旅行了。', exPinyin: 'Wǒ yǐjīng zhǔnbèi hǎo qù lǚxíng le.', exMeaning: '이미 여행 갈 준비를 마쳤다.', know: 5, hold: 0, unknown: 0 },
+    { id: 2, level: '1급', hanzi: '习惯', pinyin: 'xíguàn', meaning: '습관, 익숙해지다', exHanzi: '我已经习惯早起了。', exPinyin: 'Wǒ yǐjīng xíguàn zǎoqǐ le.', exMeaning: '일찍 일어나는 것에 익숙해졌다.', know: 4, hold: 1, unknown: 0 },
+    { id: 3, level: '2급', hanzi: '差不多', pinyin: 'chàbuduō', meaning: '비슷하다, 거의', exHanzi: '这两个词的意思差不多。', exPinyin: 'Zhè liǎng gè cí de yìsi chàbuduō.', exMeaning: '두 단어의 뜻은 거의 비슷하다.', know: 2, hold: 2, unknown: 1 },
+    { id: 4, level: '2급', hanzi: '感兴趣', pinyin: 'gǎn xìngqù', meaning: '흥미를 느끼다', exHanzi: '我对中国历史很感兴趣。', exPinyin: 'Wǒ duì Zhōngguó lìshǐ hěn gǎn xìngqù.', exMeaning: '중국 역사에 매우 흥미가 있다.', know: 1, hold: 2, unknown: 0 },
+    { id: 5, level: '3급', hanzi: '顺便', pinyin: 'shùnbiàn', meaning: '겸사겸사, 가는 길에', exHanzi: '你去超市的时候，顺便帮我买瓶水吧。', exPinyin: 'Nǐ qù chāoshì de shíhou, shùnbiàn bāng wǒ mǎi píng shuǐ ba.', exMeaning: '마트 가는 김에 내 물도 사다 줘.', know: 1, hold: 3, unknown: 2 },
+    { id: 6, level: '3급', hanzi: '来得及', pinyin: 'láidejí', meaning: '제시간에 대다, 늦지 않다', exHanzi: '现在出发还来得及看电影。', exPinyin: 'Xiànzài chūfā hái láidejí kàn diànyǐng.', exMeaning: '지금 출발하면 영화 보기에 늦지 않아.', know: 0, hold: 1, unknown: 3 },
+    { id: 7, level: '4급', hanzi: '随便', pinyin: 'suíbiàn', meaning: '마음대로 하다', exHanzi: '午饭吃什么都行，随便你。', exPinyin: 'Wǔfàn chī shénme dōu xíng, suíbiàn nǐ.', exMeaning: '점심은 뭐든 괜찮아, 네 마음대로 해.', know: 1, hold: 2, unknown: 4 },
+    { id: 8, level: '4급', hanzi: '放心', pinyin: 'fàngxīn', meaning: '안심하다', exHanzi: '这件事交给我，你放心吧。', exPinyin: 'Zhè jiàn shì jiāo gěi wǒ, nǐ fàngxīn ba.', exMeaning: '이 일은 나에게 맡기고 안심해.', know: 3, hold: 0, unknown: 1 }
+  ];
+
+  let words = JSON.parse(localStorage.getItem('myChnWordsV3') || 'null') || SAMPLE_WORDS;
+  let filteredWords = [];
+  let currentIndex = 0;
+  let currentQuizWord = null;
+
+  // Gist 설정 불러오기
+  document.getElementById('gistId').value = localStorage.getItem('myGistId') || '';
+  document.getElementById('ghToken').value = localStorage.getItem('myGhToken') || '';
+
+  initLevelOptions();
+  applyFilterAndSort();
+
+  // 취약도 계산
+  function getStats(w) {
+    const k = Number(w.know || 0);
+    const h = Number(w.hold || 0);
+    const u = Number(w.unknown || 0);
+    const total = k + h + u;
+    const weakCount = u + h;
+    const weightedWeak = (u * 1.0) + (h * 0.5);
+    const weakRatio = total > 0 ? (weightedWeak / total) * 100 : -1;
+    const rawWeakRatio = total > 0 ? (weakCount / total) * 100 : 0;
+    return { k, h, u, total, weakCount, weightedWeak, weakRatio, rawWeakRatio };
+  }
+
+  // 필터 및 정렬
+  function applyFilterAndSort() {
+    const levelVal = document.getElementById('levelFilter').value;
+    const stateVal = document.getElementById('stateFilter').value;
+    const sortVal = document.getElementById('sortOrder').value;
+
+    let list = words.filter(w => {
+      if (levelVal === 'all') return true;
+      return (w.level || '기타') === levelVal;
+    });
+
+    list = list.filter(w => {
+      const s = getStats(w);
+      if (stateVal === 'weak_focus') return s.total > 0 && s.rawWeakRatio >= 50;
+      if (stateVal === 'has_unknown') return s.u > 0;
+      if (stateVal === 'unstudied') return s.total === 0;
+      return true;
+    });
+
+    list.sort((a, b) => {
+      const sa = getStats(a);
+      const sb = getStats(b);
+      if (sortVal === 'weak_ratio_desc') {
+        if (sb.weakRatio !== sa.weakRatio) return sb.weakRatio - sa.weakRatio;
+        return sb.u - sa.u;
+      }
+      if (sortVal === 'weak_count_desc') return sb.weakCount - sa.weakCount;
+      if (sortVal === 'less_studied') return sa.total - sb.total;
+      return (a.id || 0) - (b.id || 0);
+    });
+
+    filteredWords = list;
+    currentIndex = 0;
+    updateStatus();
+    renderFlashcard();
+    renderTable();
+  }
+
+  function renderFlashcard() {
+    const hanziEl = document.getElementById('fcHanzi');
+    const progEl = document.getElementById('fcProgress');
+    const badgeEl = document.getElementById('fcWeakBadge');
+    const levelBadgeEl = document.getElementById('fcLevelBadge');
+
+    if (filteredWords.length === 0) {
+      hanziEl.textContent = '조건에 맞는 단어가 없습니다';
+      progEl.textContent = '0 / 0';
+      badgeEl.textContent = '-';
+      levelBadgeEl.textContent = '-';
+      document.getElementById('fcAnswer').classList.add('hidden');
+      document.getElementById('fcStatBar').innerHTML = '';
+      document.getElementById('fcStatCounts').innerHTML = '';
+      return;
+    }
+
+    const w = filteredWords[currentIndex];
+    const s = getStats(w);
+
+    progEl.textContent = `${currentIndex + 1} / ${filteredWords.length}`;
+    levelBadgeEl.textContent = w.level || '일반';
+    hanziEl.textContent = w.hanzi;
+    document.getElementById('fcPinyin').textContent = `[ ${w.pinyin} ]`;
+    document.getElementById('fcMeaning').textContent = w.meaning;
+    document.getElementById('fcExample').innerHTML = w.exHanzi
+      ? `<strong>${w.exHanzi}</strong><br><span style="color:var(--sub)">${w.exPinyin}</span><br>${w.exMeaning}`
+      : '<em>아직 예문이 없습니다. 상단 AI 자동 생성을 눌러보세요!</em>';
+
+    document.getElementById('fcAnswer').classList.add('hidden');
+    setBadgeStyle(badgeEl, s);
+
+    if (s.total > 0) {
+      const uPct = (s.u / s.total) * 100;
+      const hPct = (s.h / s.total) * 100;
+      const kPct = (s.k / s.total) * 100;
+      document.getElementById('fcStatBar').innerHTML = `
+        <div class="bar-u" style="width:${uPct}%"></div>
+        <div class="bar-h" style="width:${hPct}%"></div>
+        <div class="bar-k" style="width:${kPct}%"></div>
+      `;
+    } else {
+      document.getElementById('fcStatBar').innerHTML = '';
+    }
+    document.getElementById('fcStatCounts').innerHTML = `
+      <span style="color:var(--unknown)">❌ 모르겠다 ${s.u}</span>
+      <span style="color:var(--hold)">⚠️ 보류 ${s.h}</span>
+      <span style="color:var(--know)">⭕ 알겠다 ${s.k}</span>
+    `;
+
+    if (document.getElementById('autoTts').checked) {
+      speakChinese(w.hanzi);
+    }
+  }
+
+  function setBadgeStyle(el, s) {
+    el.className = 'weak-badge';
+    if (s.total === 0) {
+      el.classList.add('weak-none');
+      el.textContent = '🆕 미학습';
+    } else if (s.weakRatio >= 60) {
+      el.classList.add('weak-high');
+      el.textContent = `🔥 취약도 ${Math.round(s.weakRatio)}%`;
+    } else if (s.weakRatio >= 25) {
+      el.classList.add('weak-mid');
+      el.textContent = `⚠️ 취약도 ${Math.round(s.weakRatio)}%`;
+    } else {
+      el.classList.add('weak-low');
+      el.textContent = `✅ 취약도 ${Math.round(s.weakRatio)}%`;
+    }
+  }
+
+  function recordStudy(type) {
+    if (filteredWords.length === 0) return;
+    const w = filteredWords[currentIndex];
+    w[type] = Number(w[type] || 0) + 1;
+    saveData();
+    renderTable();
+
+    if (currentIndex < filteredWords.length - 1) {
+      currentIndex++;
+      renderFlashcard();
+    } else {
+      alert('현재 목록의 마지막 단어입니다! 최신 순으로 재정렬합니다.');
+      applyFilterAndSort();
+    }
+  }
+
+  function recordFromTable(wordId, type) {
+    const w = words.find(item => item.id === wordId);
+    if (!w) return;
+    w[type] = Number(w[type] || 0) + 1;
+    saveData();
+    applyFilterAndSort();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('wordTableBody');
+    tbody.innerHTML = filteredWords.map((w, idx) => {
+      const s = getStats(w);
+      let badgeHtml = `<span class="weak-badge weak-none">미학습</span>`;
+      if (s.total > 0) {
+        const cls = s.weakRatio >= 60 ? 'weak-high' : (s.weakRatio >= 25 ? 'weak-mid' : 'weak-low');
+        badgeHtml = `<span class="weak-badge ${cls}">취약도 ${Math.round(s.weakRatio)}%</span>`;
+      }
+
+      return `
+        <tr>
+          <td><strong>#${idx + 1}</strong></td>
+          <td><span style="font-weight:600; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; font-size:0.8rem;">${w.level || '일반'}</span></td>
+          <td><strong style="font-size:1.1rem;">${w.hanzi}</strong><br><small style="color:var(--sub)">${w.pinyin}</small></td>
+          <td>${w.meaning}</td>
+          <td>${w.exHanzi ? `${w.exHanzi}<br><small style="color:var(--sub)">${w.exPinyin} / ${w.exMeaning}</small>` : '<small style="color:#94a3b8">예문 없음</small>'}</td>
+          <td>
+            ${badgeHtml}
+            <div style="font-size:0.78rem; color:var(--sub); margin-top:2px;">❌${s.u} · ⚠️${s.h} · ⭕${s.k}</div>
+          </td>
+          <td class="mini-eval-btns">
+            <button class="btn-unknown" onclick="recordFromTable(${w.id}, 'unknown')">❌</button>
+            <button class="btn-hold" onclick="recordFromTable(${w.id}, 'hold')">⚠️</button>
+            <button class="btn-know" onclick="recordFromTable(${w.id}, 'know')">⭕</button>
+          </td>
+          <td><button class="outline" onclick="speakChinese('${w.hanzi}')">🔊</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function nextQuiz() {
+    if (filteredWords.length < 4) {
+      alert('퀴즈를 진행하려면 최소 4개 이상의 단어가 필요합니다.');
+      return;
+    }
+    document.getElementById('qzFeedback').classList.add('hidden');
+    const targetIdx = Math.floor(Math.random() * Math.min(filteredWords.length, 15));
+    currentQuizWord = filteredWords[targetIdx];
+
+    document.getElementById('qzLevelBadge').textContent = currentQuizWord.level || '일반';
+    document.getElementById('qzHanzi').textContent = currentQuizWord.hanzi;
+    document.getElementById('qzPinyin').textContent = `[ ${currentQuizWord.pinyin} ]`;
+    setBadgeStyle(document.getElementById('qzWeakBadge'), getStats(currentQuizWord));
+
+    if (document.getElementById('autoTts').checked) speakChinese(currentQuizWord.hanzi);
+
+    const options = [currentQuizWord];
+    while (options.length < 4) {
+      const rand = words[Math.floor(Math.random() * words.length)];
+      if (!options.includes(rand)) options.push(rand);
+    }
+    options.sort(() => Math.random() - 0.5);
+
+    const container = document.getElementById('qzOptions');
+    container.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-option';
+      btn.textContent = opt.meaning;
+      btn.onclick = () => {
+        if (opt.hanzi === currentQuizWord.hanzi) {
+          btn.classList.add('correct');
+          if (currentQuizWord.exHanzi) speakChinese(currentQuizWord.exHanzi);
+        } else {
+          btn.classList.add('wrong');
+        }
+        document.getElementById('qzFeedback').classList.remove('hidden');
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  function recordQuizStudy(type) {
+    if (!currentQuizWord) return;
+    currentQuizWord[type] = Number(currentQuizWord[type] || 0) + 1;
+    saveData();
+    renderTable();
+    nextQuiz();
+  }
+
+  // 엑셀 업로드 처리 (급수 반영)
+  document.getElementById('excelInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+
+      words = rows.map((r, idx) => ({
+        id: idx + 1,
+        level: r['급수'] || r['레벨'] || r['분류'] || '1급',
+        hanzi: r['한자'] || r['중국어'] || '',
+        pinyin: r['병음'] || '',
+        meaning: r['의미'] || r['뜻'] || '',
+        exHanzi: r['예문_한자'] || '',
+        exPinyin: r['예문_병음'] || '',
+        exMeaning: r['예문_의미'] || '',
+        know: Number(r['알겠다'] || 0),
+        hold: Number(r['보류'] || 0),
+        unknown: Number(r['모르겠다'] || 0)
+      })).filter(w => w.hanzi);
+
+      saveData();
+      initLevelOptions();
+      applyFilterAndSort();
+      alert(`${words.length}개 단어와 급수 정보를 성공적으로 불러왔습니다!`);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function exportExcel() {
+    if (words.length === 0) return;
+    const exportRows = words.map(w => {
+      const s = getStats(w);
+      return {
+        '급수': w.level,
+        '한자': w.hanzi,
+        '병음': w.pinyin,
+        '의미': w.meaning,
+        '예문_한자': w.exHanzi,
+        '예문_병음': w.exPinyin,
+        '예문_의미': w.exMeaning,
+        '알겠다': s.k,
+        '보류': s.h,
+        '모르겠다': s.u,
+        '취약도(%)': s.total > 0 ? Math.round(s.weakRatio) : 0
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Words");
+    XLSX.writeFile(wb, "chinese_vocab_cloud_backup.xlsx");
+  }
+
+  // GitHub Gist 동기화 함수 (방법 1)
+  function getGistConfig() {
+    const gistId = document.getElementById('gistId').value.trim();
+    const token = document.getElementById('ghToken').value.trim();
+    if (!gistId || !token) {
+      alert('Gist ID와 GitHub Token을 먼저 입력해주세요.');
+      return null;
+    }
+    localStorage.setItem('myGistId', gistId);
+    localStorage.setItem('myGhToken', token);
+    return { gistId, token };
+  }
+
+  async function saveToCloud() {
+    const cfg = getGistConfig();
+    if (!cfg) return;
+    try {
+      const res = await fetch(`https://api.github.com/gists/${cfg.gistId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${cfg.token}`,
+          'Accept': 'application/vnd.github+json'
+        },
+        body: JSON.stringify({
+          files: { "vocab_data.json": { content: JSON.stringify(words) } }
+        })
+      });
+      if (!res.ok) throw new Error();
+      alert('☁️ Gist 클라우드에 학습 기록이 안전하게 저장되었습니다!');
+    } catch (err) {
+      alert('저장 실패! Gist ID와 토큰 권한(gist)을 확인해주세요.');
+    }
+  }
+
+  async function loadFromCloud() {
+    const cfg = getGistConfig();
+    if (!cfg) return;
+    try {
+      const res = await fetch(`https://api.github.com/gists/${cfg.gistId}`, {
+        headers: { 'Authorization': `Bearer ${cfg.token}` }
+      });
+      const data = await res.json();
+      words = JSON.parse(data.files["vocab_data.json"].content);
+      saveData();
+      initLevelOptions();
+      applyFilterAndSort();
+      alert(`📥 클라우드에서 ${words.length}개 단어와 학습 기록을 불러왔습니다!`);
+    } catch (err) {
+      alert('불러오기 실패! Gist에 vocab_data.json 파일이 있는지 확인해주세요.');
+    }
+  }
+
+  // Gemini AI 예문 자동 생성
+  async function generateExamples() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey) return alert('Gemini API 키를 입력해주세요.');
+
+    const targets = words.filter(w => !w.exHanzi);
+    if (targets.length === 0) return alert('모든 단어에 이미 예문이 있습니다.');
+
+    const btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    btn.textContent = '예문 생성 중...';
+
+    try {
+      const batch = targets.slice(0, 10);
+      const prompt = `다음 중국어 단어들에 대해 일상 회화에서 자주 쓰는 짧은 예문 1개씩을 만들어줘. 반드시 순수 JSON 배열 포맷으로만 응답해:
+[{"hanzi":"단어","exHanzi":"중국어예문","exPinyin":"예문병음","exMeaning":"한국어해석"}]
+단어 목록: ${ batch.map(b => `${b.hanzi}(${b.meaning})`).join(', ') }`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      const data = await res.json();
+      const generated = JSON.parse(data.candidates[0].content.parts[0].text);
+
+      generated.forEach(item => {
+        const found = words.find(w => w.hanzi === item.hanzi);
+        if (found) {
+          found.exHanzi = item.exHanzi;
+          found.exPinyin = item.exPinyin;
+          found.exMeaning = item.exMeaning;
+        }
+      });
+
+      saveData();
+      renderFlashcard();
+      renderTable();
+      alert(`${generated.length}개 단어의 예문이 생성되었습니다!`);
+    } catch (err) {
+      alert('예문 생성 중 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ 빈 예문 AI 자동 생성';
+    }
+  }
+
+  function speakChinese(text) {
+    if (!text || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'zh-CN';
+    utter.rate = 0.9;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function speakCurrentWord() {
+    if (filteredWords[currentIndex]) speakChinese(filteredWords[currentIndex].hanzi);
+  }
+
+  function speakCurrentExample() {
+    if (filteredWords[currentIndex]?.exHanzi) speakChinese(filteredWords[currentIndex].exHanzi);
+  }
+
+  function toggleCardAnswer() {
+    document.getElementById('fcAnswer').classList.toggle('hidden');
+  }
+
+  function moveCard(step) {
+    if (filteredWords.length === 0) return;
+    currentIndex = (currentIndex + step + filteredWords.length) % filteredWords.length;
+    renderFlashcard();
+  }
+
+  function initLevelOptions() {
+    const sel = document.getElementById('levelFilter');
+    const levels = [...new Set(words.map(w => w.level || '일반'))];
+    sel.innerHTML = `<option value="all">전체 급수 (${words.length}개)</option>`;
+    levels.forEach(lvl => {
+      const count = words.filter(w => (w.level || '일반') === lvl).length;
+      sel.innerHTML += `<option value="${lvl}">${lvl} (${count}개)</option>`;
+    });
+  }
+
+  function switchMode(mode, btnEl) {
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+
+    if (mode === 'flashcard') {
+      document.getElementById('flashcardView').classList.remove('hidden');
+      renderFlashcard();
+    } else if (mode === 'quiz') {
+      document.getElementById('quizView').classList.remove('hidden');
+      nextQuiz();
+    } else {
+      document.getElementById('listView').classList.remove('hidden');
+      renderTable();
+    }
+  }
+
+  function saveData() {
+    localStorage.setItem('myChnWordsV3', JSON.stringify(words));
+    updateStatus();
+  }
+
+  function resetSampleData() {
+    if (confirm('샘플 데이터로 초기화할까요?')) {
+      localStorage.removeItem('myChnWordsV3');
+      location.reload();
+    }
+  }
+
+  function updateStatus() {
+    const studied = words.filter(w => (w.know + w.hold + w.unknown) > 0).length;
+    document.getElementById('statusText').textContent =
+      `총 ${words.length}개 단어 | 학습 완료: ${studied}개 | 현재 필터: ${filteredWords.length}개`;
+  }
+
+  // 단축키
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (document.getElementById('flashcardView').classList.contains('hidden')) return;
+
+    if (e.code === 'Space') { e.preventDefault(); toggleCardAnswer(); }
+    else if (e.key === '1') recordStudy('unknown');
+    else if (e.key === '2') recordStudy('hold');
+    else if (e.key === '3') recordStudy('know');
+    else if (e.key.toLowerCase() === 's') speakCurrentWord();
+    else if (e.key.toLowerCase() === 'e') speakCurrentExample();
+  });
+</script>
+
+</body>
+</html>
