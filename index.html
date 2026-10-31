@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>나만의 중국어 단어장 - 완벽 동기화</title>
+  <title>나만의 중국어 단어장</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -18,7 +18,7 @@
     }
     * { box-sizing: border-box; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 12px; -webkit-tap-highlight-color: transparent; }
-    .container { max-width: 920px; margin: 0 auto; }
+    .container { max-width: 900px; margin: 0 auto; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
     h2 { margin: 0; font-size: 1.25rem; }
 
@@ -34,9 +34,6 @@
 
     select, input[type="text"], input[type="password"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; }
     input[type="password"], input[type="text"] { font-size: 0.85rem; flex: 1; max-width: 220px; }
-
-    .auth-bar { background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.82rem; }
-    .user-info { font-weight: 600; color: #1e40af; }
 
     .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
     .tab-btn { background: #e2e8f0; color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; flex: 1; text-align: center; }
@@ -89,7 +86,7 @@
 
 <div class="container">
   <header>
-    <h2>🇨🇳 중국어 단어장</h2>
+    <h2>🇨🇳 나만의 중국어 단어장</h2>
     <div class="row">
       <label style="font-size:0.8rem; cursor:pointer;">
         <input type="checkbox" id="autoTts" checked> 자동 발음
@@ -97,20 +94,11 @@
     </div>
   </header>
 
-  <!-- 닉네임 로그인 바 -->
-  <div class="auth-bar" id="authBar">
-    <div class="user-info" id="userInfo">🔒 닉네임 미설정</div>
-    <div class="row">
-      <button id="loginBtn" onclick="handleLogin()" style="padding: 4px 8px; font-size: 0.75rem;">닉네임 설정</button>
-      <button id="logoutBtn" class="secondary hidden" onclick="handleLogout()" style="padding: 4px 8px; font-size: 0.75rem;">해제</button>
-    </div>
-  </div>
-
-  <!-- 파일 업로드 및 AI 패널 -->
-  <div class="panel" style="margin-top: 8px;">
+  <!-- 파일 업로드 및 백업 패널 -->
+  <div class="panel" style="margin-top: 4px;">
     <div class="row space-between">
       <div class="row">
-        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="font-size: 0.8rem; max-width: 170px;">
+        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="font-size: 0.8rem; max-width: 180px;">
         <button onclick="exportExcel()" class="outline" style="padding: 6px 10px; font-size: 0.8rem;">📥 엑셀 백업</button>
         <button onclick="resetSampleData()" class="outline" style="padding: 6px 10px; font-size: 0.8rem;">🔄 샘플</button>
       </div>
@@ -250,7 +238,7 @@
   const SAMPLE_WORDS = [
     { id: 1, level: '1급', hanzi: '准备', pinyin: 'zhǔnbèi', meaning: '준비하다', exHanzi: '我已经准备好去旅行了。', exPinyin: 'Wǒ yǐjīng zhǔnbèi hǎo qù lǚxíng le.', exMeaning: '이미 여행 갈 준비를 마쳤다.', know: 5, hold: 0, unknown: 0 },
     { id: 2, level: '1급', hanzi: '习惯', pinyin: 'xíguàn', meaning: '습관, 익숙해지다', exHanzi: '我已经习惯早起了。', exPinyin: 'Wǒ yǐjīng xíguàn zǎoqǐ le.', exMeaning: '일찍 일어나는 것에 익숙해졌다.', know: 4, hold: 1, unknown: 0 },
-    { id: 3, level: '2급', hanzi: '差不多', pinyin: 'chàbuduō', meaning: '비슷하다, 거의', exHanzi: '这两个词的意思差不多。', exPinyin: 'Zhè liǎng gè cí de yìsi chàbuduō.', exMeaning: '두 두 단어의 뜻은 거의 비슷하다.', know: 2, hold: 2, unknown: 1 },
+    { id: 3, level: '2급', hanzi: '差不多', pinyin: 'chàbuduō', meaning: '비슷하다, 거의', exHanzi: '这两个词的意思差不多。', exPinyin: 'Zhè liǎng gè cí de yìsi chàbuduō.', exMeaning: '두 단어의 뜻은 거의 비슷하다.', know: 2, hold: 2, unknown: 1 },
     { id: 4, level: '2급', hanzi: '感兴趣', pinyin: 'gǎn xìngqù', meaning: '흥미를 느끼다', exHanzi: '我对中国历史很感兴趣。', exPinyin: 'Wǒ duì Zhōngguó lìshǐ hěn gǎn xìngqù.', exMeaning: '중국 역사에 매우 흥미가 있다.', know: 1, hold: 2, unknown: 0 },
     { id: 5, level: '3급', hanzi: '顺便', pinyin: 'shùnbiàn', meaning: '겸사겸사, 가는 길에', exHanzi: '你去超市的时候，顺便帮我买瓶水吧。', exPinyin: 'Nǐ qù chāoshì de shíhou, shùnbiàn bāng wǒ mǎi píng shuǐ ba.', exMeaning: '마트 가는 김에 내 물도 사다 줘.', know: 1, hold: 3, unknown: 2 },
     { id: 6, level: '3급', hanzi: '来得及', pinyin: 'láidejí', meaning: '제시간에 대다, 늦지 않다', exHanzi: '现在出发还来得及看电影。', exPinyin: 'Xiànzài chūfā hái láidejí kàn diànyǐng.', exMeaning: '지금 출발하면 영화 보기에 늦지 않아.', know: 0, hold: 1, unknown: 3 },
@@ -258,8 +246,7 @@
     { id: 8, level: '4급', hanzi: '放心', pinyin: 'fàngxīn', meaning: '안심하다', exHanzi: '这件事交给我，你放心吧。', exPinyin: 'Zhè jiàn shì jiāo gěi wǒ, nǐ fàngxīn ba.', exMeaning: '이 일은 나에게 맡기고 안심해.', know: 3, hold: 0, unknown: 1 }
   ];
 
-  let currentUser = localStorage.getItem('myNicknameUser') || null;
-  let words = loadUserWords();
+  let words = JSON.parse(localStorage.getItem('myPureVocabData') || 'null') || SAMPLE_WORDS;
   let filteredWords = [];
   let currentIndex = 0;
   let currentQuizWord = null;
@@ -269,63 +256,15 @@
   let touchEndX = 0;
 
   window.addEventListener('DOMContentLoaded', () => {
-    checkLoginState();
     initLevelOptions();
     applyFilterAndSort();
     initSwipeEvents();
   });
 
-  function loadUserWords() {
-    if (currentUser) {
-      const saved = localStorage.getItem(`words_data_${currentUser}`);
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
-      }
-    }
-    const local = localStorage.getItem('myChnWordsV10');
-    return local ? JSON.parse(local) : SAMPLE_WORDS;
-  }
-
-  // 핵심: 데이터를 건드릴 때마다 무조건 닉네임 전용 공간과 기본 공간에 동시에 실시간 자동 저장
   function saveData() {
-    localStorage.setItem('myChnWordsV10', JSON.stringify(words));
-    if (currentUser) {
-      localStorage.setItem(`words_data_${currentUser}`, JSON.stringify(words));
-    }
+    localStorage.setItem('myPureVocabData', JSON.stringify(words));
     updateStatus();
   }
-
-  function checkLoginState() {
-    if (currentUser) {
-      document.getElementById('userInfo').textContent = `👤 닉네임: ${currentUser}`;
-      document.getElementById('loginBtn').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-      words = loadUserWords();
-      initLevelOptions();
-      applyFilterAndSort();
-    }
-  }
-
-  window.handleLogin = function() {
-    const name = prompt("기기 간 연동에 사용할 닉네임(또는 ID)을 입력하세요:");
-    if (!name) return;
-    currentUser = name.trim();
-    localStorage.setItem('myNicknameUser', currentUser);
-    
-    // 로그인하는 순간 현재 화면의 단어장이 해당 닉네임 저장소에 즉시 백업되도록 설정
-    saveData();
-    checkLoginState();
-    alert(`"${currentUser}" 닉네임 저장소와 실시간 연동되었습니다!`);
-  };
-
-  window.handleLogout = function() {
-    currentUser = null;
-    localStorage.removeItem('myNicknameUser');
-    document.getElementById('userInfo').textContent = `🔒 닉네임 미설정`;
-    document.getElementById('loginBtn').classList.remove('hidden');
-    document.getElementById('logoutBtn').classList.add('hidden');
-    alert('연동이 해제되었습니다.');
-  };
 
   function initSwipeEvents() {
     const card = document.getElementById('flashcardCard');
@@ -337,8 +276,8 @@
       touchEndX = e.changedTouches[0].screenX;
       const diff = touchEndX - touchStartX;
       if (Math.abs(diff) > 50) {
-        if (diff < 0) moveCard(1);  // 왼쪽으로 밀면 다음
-        else moveCard(-1);          // 오른쪽으로 밀면 이전
+        if (diff < 0) moveCard(1);
+        else moveCard(-1);
       }
     }, {passive: true});
   }
@@ -380,7 +319,7 @@
         if (sb.weakRatio !== sa.weakRatio) return sb.weakRatio - sa.weakRatio;
         return sb.u - sa.u;
       }
-      if (sortVal === 'weak_count_desc') return sb.weakCount - sb.weakCount;
+      if (sortVal === 'weak_count_desc') return sb.weakCount - sa.weakCount;
       if (sortVal === 'less_studied') return sa.total - sb.total;
       return (a.id || 0) - (b.id || 0);
     });
@@ -725,8 +664,7 @@
 
   function resetSampleData() {
     if (confirm('샘플 데이터로 초기화할까요?')) {
-      localStorage.removeItem('myChnWordsV10');
-      if (currentUser) localStorage.removeItem(`words_data_${currentUser}`);
+      localStorage.removeItem('myPureVocabData');
       location.reload();
     }
   }
